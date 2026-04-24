@@ -1,26 +1,36 @@
 import { GoogleGenAI } from "@google/genai";
 
-// Prefer a real Google Gemini API key (works anywhere — Railway, VPS, etc.).
-// Fallback to Replit AI Integrations proxy when running inside Replit.
-const realKey =
-  process.env["GEMINI_API_KEY"] ?? process.env["GOOGLE_API_KEY"];
-const proxyKey = process.env["AI_INTEGRATIONS_GEMINI_API_KEY"];
-const proxyUrl = process.env["AI_INTEGRATIONS_GEMINI_BASE_URL"];
+// Lazy-init so the server can boot (and accept WhatsApp QR scans / pass health
+// checks) even if no Gemini key is configured yet.
+let _ai: GoogleGenAI | null = null;
 
-export const ai: GoogleGenAI = realKey
-  ? new GoogleGenAI({ apiKey: realKey })
-  : (() => {
-      if (!proxyKey || !proxyUrl) {
-        throw new Error(
-          "No Gemini credentials found. Set GEMINI_API_KEY (recommended for production) " +
-            "or AI_INTEGRATIONS_GEMINI_API_KEY + AI_INTEGRATIONS_GEMINI_BASE_URL (Replit only).",
-        );
-      }
-      return new GoogleGenAI({
-        apiKey: proxyKey,
-        httpOptions: { apiVersion: "", baseUrl: proxyUrl },
-      });
-    })();
+export function getAi(): GoogleGenAI {
+  if (_ai) return _ai;
+  const realKey =
+    process.env["GEMINI_API_KEY"] ?? process.env["GOOGLE_API_KEY"];
+  const proxyKey = process.env["AI_INTEGRATIONS_GEMINI_API_KEY"];
+  const proxyUrl = process.env["AI_INTEGRATIONS_GEMINI_BASE_URL"];
+  if (realKey) {
+    _ai = new GoogleGenAI({ apiKey: realKey });
+  } else if (proxyKey && proxyUrl) {
+    _ai = new GoogleGenAI({
+      apiKey: proxyKey,
+      httpOptions: { apiVersion: "", baseUrl: proxyUrl },
+    });
+  } else {
+    throw new Error("MISSING_GEMINI_KEY");
+  }
+  return _ai;
+}
+
+export function hasAi(): boolean {
+  return Boolean(
+    process.env["GEMINI_API_KEY"] ??
+      process.env["GOOGLE_API_KEY"] ??
+      (process.env["AI_INTEGRATIONS_GEMINI_API_KEY"] &&
+        process.env["AI_INTEGRATIONS_GEMINI_BASE_URL"]),
+  );
+}
 
 export const SYSTEM_PROMPT = `Tum "Tedauuu" ho — ek funny, super smart, dost-jaisa AI chatbot.
 Tumhe banaya hai Mr. Suraj Sir ne (tumhare inventor / creator).
@@ -61,7 +71,12 @@ export async function askTedauuu(
     { role: "user", parts: [{ text: message }] },
   ];
 
-  const response = await ai.models.generateContent({
+  try {
+    getAi();
+  } catch {
+    return "Oye! 😅 Mera AI brain abhi connect nahi hai (admin ne Gemini API key set nahi ki). Thodi der me try karna! 🙏";
+  }
+  const response = await getAi().models.generateContent({
     model: "gemini-2.5-flash",
     contents,
     config: {
