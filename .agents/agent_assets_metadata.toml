@@ -1,0 +1,14 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "rj7v-iWuDbFfTO3I2EUFt"
+uri = "file://tedauuu_qr/tedauuu_chat_qr.png"
+type = "image"
+title = "Tedauuu Chat API — QR Code"
+
+[[outputs]]
+id = "M3q8KC6ESOfqSDbDvchTW"
+uri = "file://tedauuu_qr/whatsapp_link_qr.png"
+type = "image"
+title = "Tedauuu — WhatsApp Link QR (scan from Linked Devices)"

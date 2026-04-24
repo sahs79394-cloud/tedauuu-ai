@@ -1,0 +1,27 @@
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+.turbo/
+.cache/
+.env
+.env.local
+.env.*.local
+*.log
+.DS_Store
+
+# Local Replit workspace data
+.local/
+.replit-artifact/
+
+# WhatsApp session credentials — never commit these
+wa_auth/
+**/wa_auth/
+
+# Generated QR images
+tedauuu_qr/
+
+# Misc
+.idea/
+.vscode/
+attached_assets/
