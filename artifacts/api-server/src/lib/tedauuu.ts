@@ -62,7 +62,16 @@ export interface ChatTurn {
 export async function askTedauuu(
   message: string,
   history: ChatTurn[] = [],
+  sessionId = "default",
 ): Promise<string> {
+  // 1. Admin auth + training capture state machine
+  const { handleAdminFlow } = await import("./training.js");
+  const admin = await handleAdminFlow(sessionId, message);
+  if (admin.intercepted) {
+    return admin.reply ?? "";
+  }
+
+  // 2. Normal AI reply path
   const contents = [
     ...history.map((m) => ({
       role: m.role === "assistant" ? "model" : "user",
@@ -76,11 +85,15 @@ export async function askTedauuu(
   } catch {
     return "Oye! 😅 Mera AI brain abhi connect nahi hai (admin ne Gemini API key set nahi ki). Thodi der me try karna! 🙏";
   }
+
+  const { buildTrainingPromptSection } = await import("./training.js");
+  const trainingSection = await buildTrainingPromptSection();
+
   const response = await getAi().models.generateContent({
     model: "gemini-2.5-flash",
     contents,
     config: {
-      systemInstruction: SYSTEM_PROMPT,
+      systemInstruction: SYSTEM_PROMPT + trainingSection,
       maxOutputTokens: 8192,
       temperature: 0.9,
     },

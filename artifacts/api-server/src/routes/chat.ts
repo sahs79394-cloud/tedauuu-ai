@@ -6,6 +6,7 @@ const router: IRouter = Router();
 interface ChatRequestBody {
   message?: unknown;
   history?: unknown;
+  sessionId?: unknown;
 }
 
 function isHistoryItem(value: unknown): value is ChatTurn {
@@ -31,7 +32,12 @@ router.post("/chat", async (req, res) => {
       ? body.history.filter(isHistoryItem)
       : [];
 
-    const reply = await askTedauuu(message, history);
+    const sessionId =
+      typeof body.sessionId === "string" && body.sessionId.trim()
+        ? body.sessionId.trim()
+        : (req.ip ?? "web-default");
+
+    const reply = await askTedauuu(message, history, sessionId);
 
     res.json({ reply, name: "Tedauuu", creator: "Mr. Suraj Sir" });
   } catch (err) {

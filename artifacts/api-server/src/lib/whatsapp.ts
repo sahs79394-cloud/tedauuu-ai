@@ -184,7 +184,7 @@ export async function startWhatsapp(): Promise<void> {
 
         const history = conversations.get(jid) ?? [];
 
-        const reply = await askTedauuu(text, history);
+        const reply = await askTedauuu(text, history, jid);
 
         pushTurn(jid, "user", text);
         pushTurn(jid, "assistant", reply);
