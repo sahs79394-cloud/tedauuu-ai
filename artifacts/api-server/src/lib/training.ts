@@ -135,7 +135,7 @@ export async function handleAdminFlow(
           "Arre Sir 😅 abhi mera admin password set nahi hai system me. Pehle ADMIN_PASSWORD env var configure karo, fir try karna! 🔐",
       };
     }
-    if (text.trim() === adminPassword) {
+    if (text.trim() === adminPassword.trim()) {
       session.mode = "admin_training";
       return {
         intercepted: true,
